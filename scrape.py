@@ -1,20 +1,26 @@
 from bs4 import BeautifulSoup
 import requests
+import csv
 
-source = requests.get("https://revenue.delaware.gov/business-license-search/?bname&activity=RETAILER-GROCERY"
-                      "+SUPERMARKET&address_1&city=WILMINGTON&state&zip").text
+URL = "https://revenue.delaware.gov/business-license-search/page/4" \
+      "/?bname&activity=RETAILER-FOOD%20%28EXCEPT%20RESTAURANT%29&address_1&city=WILMINGTON&state&zip"
+source = requests.get(URL).text
 soup = BeautifulSoup(source, features="html.parser")
 
 # markets = soup.find('div', {'class': 'col-md-3 topicBlock'})
-markets = soup.find('div', {'id': 'filter-content'})
-markets_list = markets.find_all('div', 'col-md-3 topicBlock')
+market = soup.find('div', {'id': 'filter-content'})
+market_list = market.find_all('div', 'col-md-3 topicBlock')
 
-for markets in markets_list:
-    names = markets.find('h3').contents[0]
-    x = markets.find_all('p')[-1].contents[0]
+for market in market_list:
+    names = market.find('h3').contents[0]
+    x = market.find_all('p')[-1].contents[0]
     details = x[11:]
-    print(names)
-    print(details)
+    y = market.find_all('p')[1].contents[0]
+    activity = y[20:]
+    with open('fridge.csv', mode='a', newline='\n') as fridge:
+        store_writer = csv.writer(fridge, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        store_writer.writerow([names, details, activity])
+    print(names + "," + details + "," + activity)
 
 '''
 <div id="filter-content">
